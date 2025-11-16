@@ -1,13 +1,9 @@
 import './App.css';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-<<<<<<< Updated upstream
 import { useState, useEffect } from 'react';
 import SewerMap from './components/SewerMap';
 import CameraList from './components/SewerList';
 
-=======
-import CameraList from './components/SewerList'
->>>>>>> Stashed changes
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
 
