@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2016",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "outDir": "./dist" // Output compiled JS to a 'dist' folder
+  },
+  "include": [
+    "src/**/*.ts" // Include all .ts files in the src directory
+  ]
+}
