@@ -112,8 +112,10 @@ function ComputeLight(pos: [number, number]) {
   for (let p of Manholes) {
     Light += Math.exp(-((pos[0] - p[0]) ** 2 + (pos[1] - p[1]) ** 2) * 3.0);
   }
-
-  return Light;
+  // Scale to 0-255 range, assuming a max natural light value of around 2.5-3.0
+  // Clamp between 0 and 255 and round to nearest integer
+  const scaledLight = Math.round(Math.max(0, Math.min(255, (Light / 2.5) * 255)));
+  return scaledLight;
 }
 
 /**
@@ -125,52 +127,38 @@ function ComputeLight(pos: [number, number]) {
 function generateData(time: number): Array<Camera> {
   const CameraList: Array<Camera> = new Array();
 
-  let Pos0: AnimatedPos = new AnimatedPos([
+  const validCoordinates: Array<[number, number]> = [
     [0.0, 0.0],
+    [1.0, 0.0],
     [0.0, 1.0],
     [1.0, 1.0],
-    [1.0, 0.0],
-  ]);
-  let Pos1: AnimatedPos = new AnimatedPos([
-    [1.0, 1.0],
+    [1.25, 1.5],
     [1.0, 2.0],
     [2.0, 2.0],
-    [1.25, 1.5],
-    [1.25, 1.0],
-  ]);
-  let Pos2: AnimatedPos = new AnimatedPos([
-    [3.0, 2.0],
-    [3.0, 1.0],
-    [1.25, 1.0],
-    [1.25, 1.5],
-    [2.0, 2.0],
-  ]);
+    [3.0, 1.0], // Added
+    [3.0, 2.0], // Added
+  ];
 
-  Pos0.time = time;
-  Pos1.time = time;
-  Pos2.time = time;
+  for (let i = 0; i < validCoordinates.length; i++) {
+    const position = validCoordinates[i];
 
-  CameraList.push({
-    Position: Pos0.position,
-    SegmentID: 0,
-    Water: ComputeWater(Pos0.position, time) / 2,
-    Light: ComputeLight(Pos0.position),
-    Status: "OK",
-  });
-  CameraList.push({
-    Position: Pos1.position,
-    SegmentID: 1,
-    Water: ComputeWater(Pos1.position, time) / 2,
-    Light: ComputeLight(Pos1.position),
-    Status: "LOWLIGHT",
-  });
-  CameraList.push({
-    Position: Pos2.position,
-    SegmentID: 2,
-    Water: ComputeWater(Pos2.position, time) / 2,
-    Light: ComputeLight(Pos2.position),
-    Status: "OK",
-  });
+    let status: string;
+    if (i % 3 === 0) {
+      status = "OK";
+    } else if (i % 3 === 1) {
+      status = "LOWLIGHT";
+    } else {
+      status = "CRITICAL";
+    }
+
+    CameraList.push({
+      Position: position,
+      SegmentID: i, // Unique SegmentID
+      Water: ComputeWater(position, time + i * 5) / 2, // Vary time slightly for water calculation
+      Light: ComputeLight(position),
+      Status: status,
+    });
+  }
 
   return CameraList;
 }
