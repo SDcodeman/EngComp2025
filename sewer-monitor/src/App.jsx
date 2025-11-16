@@ -2,6 +2,7 @@ import './App.css';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { useState } from 'react';
 import SewerMap from './components/SewerMap';
+import CameraList from './components/SewerList';
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -47,7 +48,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/map" element={<SewerMap />} />
-          <Route path="/list" element={<List />} />
+          <Route path="/list" element={<CameraList />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
@@ -61,10 +62,6 @@ function Home() {
       <p>Welcome to Sewer Monitor</p>
     </div>
   );
-}
-
-function List() {
-  return <h1>List Page</h1>;
 }
 
 function NotFound() {
