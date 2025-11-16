@@ -1,9 +1,13 @@
 import './App.css';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+<<<<<<< Updated upstream
 import { useState, useEffect } from 'react';
 import SewerMap from './components/SewerMap';
 import CameraList from './components/SewerList';
 
+=======
+import CameraList from './components/SewerList'
+>>>>>>> Stashed changes
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -91,6 +95,15 @@ function Home() {
       <p>Welcome to Sewer Monitor</p>
     </div>
   );
+}
+
+function Map() {
+  return <h1>Map Page</h1>;
+}
+
+function List() {
+  return <><h1>List Page</h1>
+  CameraList</>;
 }
 
 function NotFound() {
