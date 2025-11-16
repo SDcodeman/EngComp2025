@@ -13,6 +13,7 @@ import {
   ExpandMore,
   Warning as WarningIcon,
 } from '@mui/icons-material';
+import { useCameraData } from '../hooks/useCameraData';
 
 const CameraListItem = ({ camera }) => {
   const [open, setOpen] = useState(false);
@@ -84,7 +85,7 @@ const CameraListItem = ({ camera }) => {
             <strong>Water Level:</strong> {(camera.Water * 100).toFixed(1)}%
           </Typography>
           <Typography variant="body2" gutterBottom>
-            <strong>Light Level:</strong> {(camera.Light * 100).toFixed(1)}%
+            <strong>Light Level:</strong> {((camera.Light / 255) * 100).toFixed(1)}%
           </Typography>
           <Typography variant="body2" gutterBottom>
             <strong>Position:</strong> [{camera.Position[0].toFixed(6)}, {camera.Position[1].toFixed(6)}]
@@ -102,29 +103,7 @@ const CameraListItem = ({ camera }) => {
 };
 
 const CameraList = () => {
-  const [cameras] = useState([
-    {
-      Position: [0, 0.5475666671991348],
-      SegmentID: 0,
-      Water: 0,
-      Light: 0.974942615630807,
-      Status: 'OK',
-    },
-    {
-      Position: [1.648718842236164, 2],
-      SegmentID: 1,
-      Water: 0,
-      Light: 0.30122279652394557,
-      Status: 'LOWLIGHT',
-    },
-    {
-      Position: [1.5006984113699566, 1],
-      SegmentID: 2,
-      Water: 0.5,
-      Light: 0.49612580114192534,
-      Status: 'OK',
-    },
-  ]);
+  const cameras = useCameraData();
 
   return (
     <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
