@@ -1,5 +1,6 @@
 import './App.css';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import SewerMap from './components/SewerMap';   // 👈 new import
 
 function App() {
   return (
@@ -12,7 +13,7 @@ function App() {
 
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/map" element={<Map />} />
+        <Route path="/map" element={<SewerMap />} />
         <Route path="/list" element={<List />} />
         <Route path="*" element={<NotFound />} /> {/* 404 page */}
       </Routes>
