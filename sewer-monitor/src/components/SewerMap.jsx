@@ -5,8 +5,8 @@ import mapImg from '../assets/Map.png';
 import { useCameraData } from '../hooks/useCameraData';
 
 // map width and height in pixels
-const IMAGE_WIDTH = 1536;
-const IMAGE_HEIGHT = 1024;
+const IMAGE_WIDTH = 1150;
+const IMAGE_HEIGHT = 775;
 
 // Leaflet simple CRS bounds
 const bounds = [
@@ -14,12 +14,26 @@ const bounds = [
   [IMAGE_HEIGHT, IMAGE_WIDTH],
 ];
 
+// Calibration points based on actual map measurements
+// Grid (0,0) is at pixel (200 from left, 440 from top)
+// Grid (1,1) is at pixel (375 from left, 590 from top)
+const OFFSET_X = 434;
+const OFFSET_Y = 191;
+const SCALE_X = 150; // pixels per grid unit (375 - 200) / 1
+let SCALE_Y = 180; // pixels per grid unit (590 - 440) / 1
+
 // Convert camera grid coordinates to map pixel coordinates
 function coordinateToPixel(position) {
-  // Assuming camera coordinates range from 0-3 on both axes
-  // Map them to the image dimensions
-  const x = (position[0] / 3) * IMAGE_WIDTH;
-  const y = (position[1] / 3) * IMAGE_HEIGHT;
+  if (position[1] > 1 && position[0]>2){
+    SCALE_Y = 215; // pixels per grid unit (590 - 440) / 1
+  } else if (position[1] > 1){
+    SCALE_Y = 200; // pixels per grid unit (590 - 440) / 1 
+  } else {
+    SCALE_Y = 180; // pixels per grid unit (590 - 440) / 1
+  }
+
+  const x = OFFSET_X + (position[0] * SCALE_X);
+  const y = IMAGE_HEIGHT- (OFFSET_Y + (position[1] * SCALE_Y));
   return [y, x]; // Leaflet uses [lat, lng] which maps to [y, x]
 }
 
