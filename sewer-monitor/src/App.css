@@ -1,32 +1,125 @@
-.app {
-  min-height: 100vh;
+/* Layout base */
+body, #root {
+  margin: 0;
+  height: 100%;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: #0f172a; /* dark navy */
+  color: #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.app-title {
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Hamburger button */
+.hamburger {
+  width: 32px;
+  height: 24px;
   display: flex;
   flex-direction: column;
-  background-color: #f5f5f5;
+  justify-content: space-between;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 
-.header {
-  background-color: #0277bd;
-  color: white;
-  padding: 2rem;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.hamburger span {
+  display: block;
+  height: 3px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.header h1 {
+/* X animation when open */
+.hamburger.open span:nth-child(1) {
+  transform: translateY(9px) rotate(45deg);
+}
+.hamburger.open span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger.open span:nth-child(3) {
+  transform: translateY(-9px) rotate(-45deg);
+}
+
+/* Side menu */
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100vh;
+  background: #020617;
+  color: #e5e7eb;
+  box-shadow: 4px 0 16px rgba(0,0,0,0.4);
+  transform: translateX(-100%);
+  transition: transform 0.25s ease-out;
+  z-index: 900;
+  padding-top: 64px; /* room for header */
+}
+
+.side-menu.open {
+  transform: translateX(0);
+}
+
+.side-menu ul {
+  list-style: none;
+  padding: 0.5rem 0.75rem;
   margin: 0;
-  font-size: 2rem;
 }
 
-.main {
-  flex: 1;
+.side-menu li {
+  margin-bottom: 0.25rem;
+}
+
+.side-menu a {
+  display: block;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+  font-size: 0.95rem;
+}
+
+.side-menu a:hover {
+  background: rgba(148, 163, 184, 0.15);
+}
+
+/* Backdrop behind menu */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  z-index: 800;
+}
+
+/* Main content area */
+.app-main {
+  padding: 1rem;
+  height: calc(100vh - 56px); /* header height-ish */
+  box-sizing: border-box;
+}
+
+/* Optional: tweak for map page to use full height */
+.map-page {
+  height: 100%;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem;
+  flex-direction: column;
 }
 
-.main p {
-  font-size: 1.5rem;
-  color: #333;
+.map-container {
+  flex: 1;
+  margin-top: 0.5rem;
 }
