@@ -1,13 +1,29 @@
 import './App.css';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SewerMap from './components/SewerMap';
 import CameraList from './components/SewerList';
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // theme: 'light' | 'dark'
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === 'undefined') return 'dark';
+    return localStorage.getItem('theme') || 'dark';
+  });
+
   const closeMenu = () => setMenuOpen(false);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  // apply theme to <html> and persist it
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   return (
     <BrowserRouter>
@@ -36,6 +52,19 @@ function App() {
           </li>
           <li>
             <Link to="/list" onClick={closeMenu}>List View</Link>
+          </li>
+
+          {/* Dark / light mode toggle */}
+          <li className="theme-toggle-item">
+            <label className="theme-toggle">
+              <span>Dark mode</span>
+              <input
+                type="checkbox"
+                checked={theme === 'dark'}
+                onChange={toggleTheme}
+              />
+              <div className="toggle-slider" />
+            </label>
           </li>
         </ul>
       </nav>
