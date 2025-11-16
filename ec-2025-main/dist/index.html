@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Sewer Camera System</title>
+    </head>
+    <body>
+        <h1>Sewer Camera System</h1>
+        <p>
+            If you see this page, you are on the home page of the Sewer Camera
+            System. To utilize it correctly, you will need to access the API.
+            To do so, use `/api/json` or `/api/csv` to access the data in real
+            time.
+        </p>
+        <p>
+            Each entry will have the following in order:
+            <ul>
+                <li>X,Y Position</li>
+                <li>Segment ID</li>
+                <li>Water Submersion %</li>
+                <li>Light Levels (between 0 and 255)</li>
+                <li>Camera Status (OK, LOWLIGHT, WARNING)</li>
+                <li>Other Properties (descriptive)</li>
+            </ul>
+        </p>
+        <h2>Other Architecture Details</h2>
+        <p>
+            <div>Here is a map you may use as a reference if you want to confirm your connections</div>
+            <img src="Map.png" width="700" />
+            <ul>
+                <li>If you see a -1 in your node connections, that is an exit according to the sewer architecture</li>
+                <li>The map has dots. Those are not necessarily just accessible camera spots, but also manholes that will not be specified by cameras (as the cameras are intended to be inside the pipes), but you may notice a decent amount of light leaking through.</li>
+            </ul>
+        </p>
+        <h1>Good Luck Competitors!</h1>
+    </body>
+</html>
