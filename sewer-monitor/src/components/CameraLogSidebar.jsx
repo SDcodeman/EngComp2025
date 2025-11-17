@@ -19,14 +19,17 @@ import {
   Close as CloseIcon,
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
+  Download as DownloadIcon,
 } from '@mui/icons-material';
-import { getLogsBySegment } from '../utils/csvLogger';
+import { getLogsBySegment, downloadCSV } from '../utils/csvLogger';
+import SimpleChart from './SimpleChart';
 
 const CameraLogSidebar = ({ open, onClose, camera }) => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [timeRange, setTimeRange] = useState(1); // hours
   const [stats, setStats] = useState(null);
+  const [chartData, setChartData] = useState({ water: [], light: [] });
 
   useEffect(() => {
     if (open && camera) {
@@ -73,8 +76,28 @@ const CameraLogSidebar = ({ open, onClose, camera }) => {
           maxLight: Math.max(...lightLevels),
           waterTrend: waterTrend,
         });
+
+        // Prepare chart data (reverse to show oldest to newest on chart)
+        const reversedData = [...sortedData].reverse();
+
+        // Sample data points for chart (max 20 points for readability)
+        const sampleInterval = Math.max(1, Math.floor(reversedData.length / 20));
+        const sampledData = reversedData.filter((_, i) => i % sampleInterval === 0);
+
+        const waterChartData = sampledData.map(log => ({
+          value: log.water * 100, // Convert to percentage
+          label: formatTimeForChart(log.timestamp),
+        }));
+
+        const lightChartData = sampledData.map(log => ({
+          value: (log.light / 255) * 100, // Convert to percentage
+          label: formatTimeForChart(log.timestamp),
+        }));
+
+        setChartData({ water: waterChartData, light: lightChartData });
       } else {
         setStats(null);
+        setChartData({ water: [], light: [] });
       }
     } catch (error) {
       console.error('Failed to load logs:', error);
@@ -97,6 +120,11 @@ const CameraLogSidebar = ({ open, onClose, camera }) => {
     return date.toLocaleString();
   };
 
+  const formatTimeForChart = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'OK':
@@ -108,6 +136,31 @@ const CameraLogSidebar = ({ open, onClose, camera }) => {
       default:
         return 'default';
     }
+  };
+
+  const handleDownloadCSV = () => {
+    if (logs.length === 0) return;
+
+    // Create CSV content
+    const headers = ['Timestamp', 'SegmentID', 'Longitude', 'Latitude', 'Water Level', 'Light Level', 'Status'];
+    const csvRows = [headers.join(',')];
+
+    for (const log of logs) {
+      const row = [
+        log.timestamp,
+        log.segmentID,
+        log.position[0],
+        log.position[1],
+        log.water,
+        log.light,
+        log.status
+      ];
+      csvRows.push(row.join(','));
+    }
+
+    const csvContent = csvRows.join('\n');
+    const filename = `segment-${camera.SegmentID}-data-${timeRange}h.csv`;
+    downloadCSV(csvContent, filename);
   };
 
   if (!camera) return null;
@@ -185,6 +238,35 @@ const CameraLogSidebar = ({ open, onClose, camera }) => {
           </Select>
         </FormControl>
 
+        {/* Download CSV Button */}
+        <Box
+          component="button"
+          onClick={handleDownloadCSV}
+          disabled={logs.length === 0}
+          sx={{
+            width: '100%',
+            height: '48px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1,
+            bgcolor: logs.length === 0 ? 'grey.200' : 'primary.main',
+            color: logs.length === 0 ? 'grey.500' : 'white',
+            border: 'none',
+            borderRadius: 1,
+            cursor: logs.length === 0 ? 'not-allowed' : 'pointer',
+            mb: 2,
+            '&:hover': {
+              bgcolor: logs.length === 0 ? 'grey.200' : 'primary.dark',
+            },
+          }}
+        >
+          <DownloadIcon />
+          <Typography variant="body1" fontWeight="bold">
+            Download CSV
+          </Typography>
+        </Box>
+
         {/* Statistics */}
         {loading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
@@ -256,6 +338,21 @@ const CameraLogSidebar = ({ open, onClose, camera }) => {
                 </Grid>
               </CardContent>
             </Card>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* Chart */}
+            <Typography variant="h6" fontWeight="bold" gutterBottom>
+              Water Level Over Time
+            </Typography>
+
+            <SimpleChart
+              data={chartData.water}
+              label="Water Level (%)"
+              color="#2196f3"
+              height={150}
+              yAxisFormatter={(v) => `${v.toFixed(0)}%`}
+            />
 
             <Divider sx={{ my: 2 }} />
 
