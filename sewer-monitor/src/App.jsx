@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import SewerMap from './components/SewerMap';
 import CameraList from './components/SewerList';
+import Home from './components/Home';
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -82,14 +83,6 @@ function App() {
         </Routes>
       </main>
     </BrowserRouter>
-  );
-}
-
-function Home() {
-  return (
-    <div className="home">
-      <p>Welcome to Sewer Monitor</p>
-    </div>
   );
 }
 
