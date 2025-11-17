@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
-import { getCameraData } from '../utils/cameraData';
+import { getCameraData, getAllCameraData } from '../utils/cameraData';
 import { logCameraData, cleanupOldLogs } from '../utils/csvLogger';
 
 /**
  * Custom hook to fetch and auto-refresh camera data every 5 seconds
  * Also logs data to IndexedDB for historical tracking
+ * @param {boolean} includeAll - If true, fetch all locations; if false, fetch main 9 only
  * @returns Array of camera objects
  */
-export function useCameraData() {
+export function useCameraData(includeAll = false) {
   const [cameras, setCameras] = useState([]);
 
   useEffect(() => {
     // Fetch initial data
     const fetchData = async () => {
-      const data = getCameraData();
+      const data = includeAll ? getAllCameraData() : getCameraData();
       setCameras(data);
 
       // Log the data to IndexedDB
@@ -46,7 +47,7 @@ export function useCameraData() {
       clearInterval(interval);
       clearInterval(cleanupInterval);
     };
-  }, []);
+  }, [includeAll]);
 
   return cameras;
 }

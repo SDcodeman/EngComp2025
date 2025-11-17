@@ -152,3 +152,111 @@ export function asJSON(time) {
   let Data = generateData(time);
   return JSON.stringify(Data);
 }
+
+/**
+ * Generates data for all camera locations (expanded grid coverage)
+ * This includes many more monitoring points across the sewer system
+ *
+ * @param time
+ * @returns Simulated sewer camera data for all locations
+ */
+function generateAllLocationsData(time) {
+  const CameraList = [];
+
+  // Comprehensive grid of all camera locations
+  // Covers a 4x3 grid with 0.5 unit spacing for detailed monitoring
+  const allCoordinates = [
+    // Row y=0
+    [0.0, 0.0],
+    [0.5, 0.0],
+    [1.0, 0.0],
+    [1.5, 0.0],
+    [2.0, 0.0],
+    [2.5, 0.0],
+    [3.0, 0.0],
+
+    // Row y=0.5
+    [0.0, 0.5],
+    [0.5, 0.5],
+    [1.0, 0.5],
+    [1.5, 0.5],
+    [2.0, 0.5],
+    [2.5, 0.5],
+    [3.0, 0.5],
+
+    // Row y=1.0
+    [0.0, 1.0],
+    [0.5, 1.0],
+    [1.0, 1.0],
+    [1.25, 1.0],
+    [1.5, 1.0],
+    [2.0, 1.0],
+    [2.5, 1.0],
+    [3.0, 1.0],
+
+    // Row y=1.25
+    [1.25, 1.25],
+
+    // Row y=1.5
+    [0.0, 1.5],
+    [0.5, 1.5],
+    [1.0, 1.5],
+    [1.25, 1.5],
+    [1.5, 1.5],
+    [2.0, 1.5],
+    [2.5, 1.5],
+    [3.0, 1.5],
+
+    // Row y=2.0
+    [0.0, 2.0],
+    [0.5, 2.0],
+    [1.0, 2.0],
+    [1.5, 2.0],
+    [2.0, 2.0],
+    [2.5, 2.0],
+    [3.0, 2.0],
+
+    // Row y=2.5
+    [0.0, 2.5],
+    [0.5, 2.5],
+    [1.0, 2.5],
+    [1.5, 2.5],
+    [2.0, 2.5],
+    [2.5, 2.5],
+    [3.0, 2.5],
+  ];
+
+  for (let i = 0; i < allCoordinates.length; i++) {
+    const position = allCoordinates[i];
+
+    let status;
+    if (i % 3 === 0) {
+      status = "OK";
+    } else if (i % 3 === 1) {
+      status = "LOWLIGHT";
+    } else {
+      status = "CRITICAL";
+    }
+
+    CameraList.push({
+      Position: position,
+      SegmentID: i,
+      Water: ComputeWater(position, time + i * 5) / 2,
+      Light: ComputeLight(position),
+      Status: status,
+    });
+  }
+
+  return CameraList;
+}
+
+/**
+ * Exports all locations data as JSON string
+ *
+ * @param time
+ * @returns JSON string of all camera locations
+ */
+export function asJSONAllLocations(time) {
+  let Data = generateAllLocationsData(time);
+  return JSON.stringify(Data);
+}

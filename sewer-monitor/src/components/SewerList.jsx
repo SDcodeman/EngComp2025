@@ -11,8 +11,11 @@ import {
   Box,
   Tooltip,
   TableSortLabel,
+  ToggleButtonGroup,
+  ToggleButton,
+  Typography,
 } from '@mui/material';
-import { Warning as WarningIcon } from '@mui/icons-material';
+import { Warning as WarningIcon, LocationOn as LocationOnIcon, ViewList as ViewListIcon } from '@mui/icons-material';
 import { useCameraData } from '../hooks/useCameraData';
 import CameraLogSidebar from './CameraLogSidebar';
 
@@ -139,11 +142,15 @@ const WaterLevelIndicator = ({ waterLevel, brightness }) => {
 };
 
 const CameraList = () => {
-  const cameras = useCameraData();
+  const [viewMode, setViewMode] = useState('main'); // 'main' or 'all'
+  const cameras = useCameraData(viewMode === 'all');
   const [orderBy, setOrderBy] = useState('SegmentID');
   const [order, setOrder] = useState('asc');
   const [selectedCamera, setSelectedCamera] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Main 9 locations (segment IDs 0-8)
+  const mainLocationIDs = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
   // Handle camera row click
   const handleCameraClick = (camera) => {
@@ -154,6 +161,13 @@ const CameraList = () => {
   // Handle sidebar close
   const handleSidebarClose = () => {
     setSidebarOpen(false);
+  };
+
+  // Handle view mode change
+  const handleViewModeChange = (event, newMode) => {
+    if (newMode !== null) {
+      setViewMode(newMode);
+    }
   };
 
   // Determine status color
@@ -191,9 +205,16 @@ const CameraList = () => {
     setOrderBy(property);
   };
 
-  // Sort cameras
+  // Filter and sort cameras
   const sortedCameras = useMemo(() => {
-    return [...cameras].sort((a, b) => {
+    // Filter based on view mode
+    let filteredCameras = cameras;
+    if (viewMode === 'main') {
+      filteredCameras = cameras.filter(camera => mainLocationIDs.includes(camera.SegmentID));
+    }
+
+    // Sort the filtered cameras
+    return [...filteredCameras].sort((a, b) => {
       let aValue, bValue;
 
       switch (orderBy) {
@@ -228,7 +249,7 @@ const CameraList = () => {
         return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
       }
     });
-  }, [cameras, order, orderBy]);
+  }, [cameras, order, orderBy, viewMode, mainLocationIDs]);
 
   return (
     <Box
@@ -238,9 +259,32 @@ const CameraList = () => {
         mt: 3,
       }}
     >
-      <TableContainer 
-        component={Paper} 
-        sx={{ 
+      {/* Header with view mode toggle */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6" fontWeight="bold">
+          Camera Locations {viewMode === 'main' ? `(${sortedCameras.length} Main)` : `(${sortedCameras.length} Total)`}
+        </Typography>
+        <ToggleButtonGroup
+          value={viewMode}
+          exclusive
+          onChange={handleViewModeChange}
+          aria-label="view mode"
+          size="small"
+        >
+          <ToggleButton value="main" aria-label="main locations">
+            <LocationOnIcon sx={{ mr: 0.5, fontSize: '1.2rem' }} />
+            Main 9
+          </ToggleButton>
+          <ToggleButton value="all" aria-label="all locations">
+            <ViewListIcon sx={{ mr: 0.5, fontSize: '1.2rem' }} />
+            All Locations
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
+
+      <TableContainer
+        component={Paper}
+        sx={{
           borderRadius: 2,
           boxShadow: 1,
         }}
