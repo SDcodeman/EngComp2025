@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { Warning as WarningIcon } from '@mui/icons-material';
 import { useCameraData } from '../hooks/useCameraData';
+import CameraLogSidebar from './CameraLogSidebar';
 
 const WaterLevelIndicator = ({ waterLevel, brightness }) => {
   // Convert brightness (0-255) to darkness percentage (0-100)
@@ -49,49 +50,68 @@ const WaterLevelIndicator = ({ waterLevel, brightness }) => {
           height: `${waterPercent}%`,
           backgroundColor: '#2196f3',
           transition: 'height 0.3s ease',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: -10,
-            left: '-100%',
-            width: '200%',
-            height: 20,
-            background: 'radial-gradient(circle, #1976d2 20%, transparent 20%)',
-            backgroundSize: '20px 20px',
-            animation: 'wave 3s linear infinite',
-          },
-          '@keyframes wave': {
-            '0%': {
-              transform: 'translateX(0)',
-            },
-            '100%': {
-              transform: 'translateX(50%)',
-            },
-          },
+          overflow: 'hidden',
         }}
       >
-        {/* Wave effect */}
+        {/* Animated wave layers */}
         <Box
           sx={{
             position: 'absolute',
-            top: -5,
-            left: 0,
-            right: 0,
-            height: 10,
-            background: `linear-gradient(90deg, 
-              transparent 0%, 
-              rgba(255,255,255,0.3) 25%, 
-              transparent 50%, 
-              rgba(255,255,255,0.3) 75%, 
-              transparent 100%)`,
-            backgroundSize: '40px 10px',
-            animation: 'wave-move 2s linear infinite',
-            '@keyframes wave-move': {
-              '0%': {
-                backgroundPosition: '0 0',
+            top: '-10px',
+            left: '-50%',
+            width: '200%',
+            height: '20px',
+            background: 'rgba(255, 255, 255, 0.2)',
+            borderRadius: '45%',
+            animation: 'wave1 3s ease-in-out infinite',
+            '@keyframes wave1': {
+              '0%, 100%': {
+                transform: 'translateX(0) translateY(0)',
               },
-              '100%': {
-                backgroundPosition: '40px 0',
+              '50%': {
+                transform: 'translateX(-25%) translateY(-5px)',
+              },
+            },
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '-15px',
+            left: '-50%',
+            width: '200%',
+            height: '25px',
+            background: 'rgba(255, 255, 255, 0.15)',
+            borderRadius: '40%',
+            animation: 'wave2 4s ease-in-out infinite',
+            animationDelay: '-1s',
+            '@keyframes wave2': {
+              '0%, 100%': {
+                transform: 'translateX(-25%) translateY(0)',
+              },
+              '50%': {
+                transform: 'translateX(0) translateY(-8px)',
+              },
+            },
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '-5px',
+            left: '-50%',
+            width: '200%',
+            height: '15px',
+            background: 'rgba(33, 150, 243, 0.3)',
+            borderRadius: '50%',
+            animation: 'wave3 3.5s ease-in-out infinite',
+            animationDelay: '-0.5s',
+            '@keyframes wave3': {
+              '0%, 100%': {
+                transform: 'translateX(-12.5%) translateY(-3px)',
+              },
+              '50%': {
+                transform: 'translateX(-37.5%) translateY(0)',
               },
             },
           }}
@@ -122,6 +142,19 @@ const CameraList = () => {
   const cameras = useCameraData();
   const [orderBy, setOrderBy] = useState('SegmentID');
   const [order, setOrder] = useState('asc');
+  const [selectedCamera, setSelectedCamera] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Handle camera row click
+  const handleCameraClick = (camera) => {
+    setSelectedCamera(camera);
+    setSidebarOpen(true);
+  };
+
+  // Handle sidebar close
+  const handleSidebarClose = () => {
+    setSidebarOpen(false);
+  };
 
   // Determine status color
   const getStatusColor = (status) => {
@@ -266,10 +299,11 @@ const CameraList = () => {
           </TableHead>
           <TableBody>
             {sortedCameras.map((camera) => (
-              <TableRow 
+              <TableRow
                 key={camera.SegmentID}
-                sx={{ 
-                  '&:hover': { bgcolor: 'grey.50' },
+                onClick={() => handleCameraClick(camera)}
+                sx={{
+                  '&:hover': { bgcolor: 'grey.50', cursor: 'pointer' },
                   transition: 'background-color 0.2s',
                 }}
               >
@@ -312,6 +346,13 @@ const CameraList = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Sidebar for camera logs */}
+      <CameraLogSidebar
+        open={sidebarOpen}
+        onClose={handleSidebarClose}
+        camera={selectedCamera}
+      />
     </Box>
   );
 };
