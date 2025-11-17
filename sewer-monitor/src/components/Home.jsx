@@ -46,16 +46,11 @@ const Home = () => {
       const currentData = getAllCameraData();
 
       // Get all historical data
-      let historicalLogs = [];
-      try {
-        const now = new Date();
-        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        historicalLogs = await getLogsByDateRange(sevenDaysAgo, now);
-      } catch (error) {
-        console.warn('No historical data available yet:', error);
-      }
+      const now = new Date();
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const historicalLogs = await getLogsByDateRange(sevenDaysAgo, now);
 
-      // Start with historical data
+      // Combine current and historical data
       const allData = [...historicalLogs];
 
       // Add current readings to the export
@@ -72,6 +67,12 @@ const Home = () => {
           light: camera.Light,
           status: camera.Status,
         });
+      }
+
+      if (allData.length === 0) {
+        setMessage({ type: 'warning', text: 'No data available to export' });
+        setLoading(false);
+        return;
       }
 
       // Sort by timestamp (oldest to newest)
@@ -100,12 +101,9 @@ const Home = () => {
 
       downloadCSV(csvContent, filename);
 
-      const historicalCount = historicalLogs.length;
-      const currentCount = currentData.length;
-
       setMessage({
         type: 'success',
-        text: `Successfully exported ${allData.length.toLocaleString()} records! (${historicalCount} historical + ${currentCount} current)`
+        text: `Successfully exported ${allData.length.toLocaleString()} data records!`
       });
     } catch (error) {
       setMessage({ type: 'error', text: `Export failed: ${error.message}` });
@@ -164,7 +162,7 @@ const Home = () => {
               <Card sx={{ bgcolor: 'success.light', color: 'white' }}>
                 <CardContent>
                   <Typography variant="h4" fontWeight="bold">
-                    9
+                    50
                   </Typography>
                   <Typography variant="body2">
                     Camera Segments
@@ -176,10 +174,10 @@ const Home = () => {
               <Card sx={{ bgcolor: 'warning.light', color: 'white' }}>
                 <CardContent>
                   <Typography variant="h4" fontWeight="bold">
-                    RAMs
+                    7 Days
                   </Typography>
                   <Typography variant="body2">
-                    Worth of Data Retension
+                    Data Retention
                   </Typography>
                 </CardContent>
               </Card>
