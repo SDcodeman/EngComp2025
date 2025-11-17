@@ -55,18 +55,26 @@ function MapInitializer() {
 // Grid (0,0) is at pixel (200 from left, 440 from top)
 // Grid (1,1) is at pixel (375 from left, 590 from top)
 const OFFSET_X = 434;
-const OFFSET_Y = 191;
-const SCALE_X = 150; // pixels per grid unit
+const OFFSET_Y = 192.5;
+let SCALE_X = 149; // pixels per grid unit
 let SCALE_Y = 180;   // pixels per grid unit
 
 // Convert camera grid coordinates to map pixel coordinates
 function coordinateToPixel(position) {
   if (position[1] > 1 && position[0] > 2) {
-    SCALE_Y = 215;
+    SCALE_Y = 212.5;
+
   } else if (position[1] > 1) {
-    SCALE_Y = 200;
+    SCALE_Y = 195;
   } else {
-    SCALE_Y = 180;
+    SCALE_Y = 178.5;
+  }
+
+  if (position[0]<1.3) {
+   SCALE_X = 149 // pixels per grid unit
+  } else {
+    SCALE_X = 148 // pixels per grid unit
+
   }
 
   const x = OFFSET_X + position[0] * SCALE_X;
