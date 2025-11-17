@@ -1,4 +1,4 @@
-import ObjectsToCSV from "objects-to-csv";
+import ObjectsToCSV = require("objects-to-csv");
 
 interface Camera {
   Position: [number, number];
@@ -6,6 +6,7 @@ interface Camera {
   Water: number;
   Light: number;
   Status: string;
+  isNode: boolean;
   ViewDescription?: string;
 }
 
@@ -67,7 +68,7 @@ class AnimatedPos {
   }
 }
 
-function ComputeWater(pos: [number, number], t: number): number {
+export function ComputeWater(pos: [number, number], t: number): number {
   // Yes... This is unfortunately a hardcoded mess...
   // You might want to refer to Map.png to see how all this is connected
   // Water flows to the bottom right of the map starting from (0, 0)
@@ -99,6 +100,34 @@ function ComputeWater(pos: [number, number], t: number): number {
   return ComputeWater([Math.floor(pos[0]), Math.floor(pos[1])], t - distance);
 }
 
+const NODES: Array<[number, number]> = [
+  [0, 0],
+  [1, 0],
+  [0, 1],
+  [1, 1],
+  [5 / 4, 1],
+  [3, 1],
+  [5 / 4, 3 / 2],
+  [1, 2],
+  [2, 2],
+  [3, 2],
+];
+
+const PIPES: Array<[[number, number], [number, number]]> = [
+  [NODES[0], NODES[1]],
+  [NODES[0], NODES[2]],
+  [NODES[1], NODES[3]],
+  [NODES[2], NODES[3]],
+  [NODES[3], NODES[4]],
+  [NODES[4], NODES[5]],
+  [NODES[4], NODES[6]],
+  [NODES[3], NODES[7]],
+  [NODES[7], NODES[8]],
+  [NODES[6], NODES[8]],
+  [NODES[5], NODES[9]],
+  [NODES[8], NODES[9]],
+];
+
 const Manholes: Array<[number, number]> = [
   [0, 0],
   [0, 1],
@@ -107,7 +136,7 @@ const Manholes: Array<[number, number]> = [
   [3, 2],
 ];
 
-function ComputeLight(pos: [number, number]) {
+export function ComputeLight(pos: [number, number]) {
   let Light = 0;
   for (let p of Manholes) {
     Light += Math.exp(-((pos[0] - p[0]) ** 2 + (pos[1] - p[1]) ** 2) * 3.0);
@@ -124,23 +153,18 @@ function ComputeLight(pos: [number, number]) {
  * @param time
  * @returns Simulated sewer camera data that moves over time
  */
+/**
+ * Generates simulated and modeled camera data and returns the output
+ *
+ * @param time
+ * @returns Simulated sewer camera data that moves over time
+ */
 function generateData(time: number): Array<Camera> {
   const CameraList: Array<Camera> = new Array();
 
-  const validCoordinates: Array<[number, number]> = [
-    [0.0, 0.0],
-    [1.0, 0.0],
-    [0.0, 1.0],
-    [1.0, 1.0],
-    [1.25, 1.5],
-    [1.0, 2.0],
-    [2.0, 2.0],
-    [3.0, 1.0], // Added
-    [3.0, 2.0], // Added
-  ];
-
-  for (let i = 0; i < validCoordinates.length; i++) {
-    const position = validCoordinates[i];
+  // Generate data for nodes
+  for (let i = 0; i < NODES.length; i++) {
+    const position = NODES[i];
 
     let status: string;
     if (i % 3 === 0) {
@@ -153,14 +177,105 @@ function generateData(time: number): Array<Camera> {
 
     CameraList.push({
       Position: position,
-      SegmentID: i, // Unique SegmentID
-      Water: ComputeWater(position, time + i * 5) / 2, // Vary time slightly for water calculation
+      SegmentID: i, // Unique SegmentID for nodes
+      Water: ComputeWater(position, time + i * 5) / 2,
       Light: ComputeLight(position),
       Status: status,
+      isNode: true,
     });
   }
 
+  // Generate data for points on pipes
+  let segmentIdCounter = NODES.length;
+  for (let i = 0; i < PIPES.length; i++) {
+    const pipe = PIPES[i];
+    const pointsOnPipe = generatePointsOnPipe(pipe, 3);
+    for (let j = 0; j < pointsOnPipe.length; j++) {
+      const position = pointsOnPipe[j];
+
+      let status: string;
+      if (segmentIdCounter % 3 === 0) {
+        status = "OK";
+      } else if (segmentIdCounter % 3 === 1) {
+        status = "LOWLIGHT";
+      } else {
+        status = "CRITICAL";
+      }
+
+      CameraList.push({
+        Position: position,
+        SegmentID: segmentIdCounter++, // Unique SegmentID for points on pipes
+        Water: ComputeWater(position, time + segmentIdCounter * 5) / 2,
+        Light: ComputeLight(position),
+        Status: status,
+        isNode: false,
+      });
+    }
+  }
+
   return CameraList;
+}
+
+function generatePointsOnPipe(pipe: [[number, number], [number, number]], numPoints: number): Array<[number, number]> {
+  const points: Array<[number, number]> = [];
+  const [start, end] = pipe;
+  for (let i = 1; i <= numPoints; i++) {
+    const t = i / (numPoints + 1);
+    const x = start[0] + t * (end[0] - start[0]);
+    const y = start[1] + t * (end[1] - start[1]);
+    points.push([x, y]);
+  }
+  return points;
+}
+
+export function findClosestPoint(point: [number, number]): [number, number] {
+  let closestPoint: [number, number] = [-1, -1];
+  let minDistance = Infinity;
+
+  for (const pipe of PIPES) {
+    const [start, end] = pipe;
+    const dx = end[0] - start[0];
+    const dy = end[1] - start[1];
+
+    if (dx === 0 && dy === 0) {
+      // The pipe is a point (start and end are the same)
+      const d = Math.sqrt((point[0] - start[0]) ** 2 + (point[1] - start[1]) ** 2);
+      if (d < minDistance) {
+        minDistance = d;
+        closestPoint = start;
+      }
+      continue;
+    }
+
+    // Calculate the projection of the point onto the line defined by the pipe
+    // t is the parameter along the line segment [0, 1]
+    const t =
+      ((point[0] - start[0]) * dx + (point[1] - start[1]) * dy) /
+      (dx * dx + dy * dy);
+
+    let currentClosest: [number, number];
+    if (t < 0) {
+      // Closest point is the start of the segment
+      currentClosest = start;
+    } else if (t > 1) {
+      // Closest point is the end of the segment
+      currentClosest = end;
+    } else {
+      // Closest point is on the segment
+      currentClosest = [start[0] + t * dx, start[1] + t * dy];
+    }
+
+    const distance = Math.sqrt(
+      (point[0] - currentClosest[0]) ** 2 + (point[1] - currentClosest[1]) ** 2
+    );
+
+    if (distance < minDistance) {
+      minDistance = distance;
+      closestPoint = currentClosest;
+    }
+  }
+
+  return closestPoint;
 }
 
 export function asJSON(time: number): string {
