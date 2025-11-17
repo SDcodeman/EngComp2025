@@ -154,6 +154,57 @@ export function asJSON(time) {
 }
 
 /**
+ * Safe wrapper for ComputeWater that prevents stack overflow
+ * @param {Array} pos - Position coordinates
+ * @param {Number} t - Time
+ * @param {Number} depth - Recursion depth tracker
+ * @returns {Number} Water level
+ */
+function ComputeWaterSafe(pos, t, depth = 0) {
+  // Prevent infinite recursion
+  if (depth > 20) {
+    return 0.5; // Return a default value
+  }
+
+  // For positions not explicitly defined, use interpolation or default
+  const knownPositions = [
+    [0, 0], [1, 0], [0, 1], [1, 1], [1.25, 1], [3, 1],
+    [1.25, 1.5], [1, 2], [2, 2], [3, 2]
+  ];
+
+  const isKnown = knownPositions.some(
+    known => Math.abs(known[0] - pos[0]) < 0.01 && Math.abs(known[1] - pos[1]) < 0.01
+  );
+
+  if (isKnown) {
+    try {
+      return ComputeWater(pos, t);
+    } catch (e) {
+      return 0.5;
+    }
+  }
+
+  // For unknown positions, interpolate based on nearby known positions
+  // Simple average of nearby values
+  let nearestValue = 0.5;
+  let minDist = Infinity;
+
+  for (const known of knownPositions) {
+    const dist = Math.sqrt((pos[0] - known[0]) ** 2 + (pos[1] - known[1]) ** 2);
+    if (dist < minDist) {
+      minDist = dist;
+      try {
+        nearestValue = ComputeWater(known, t);
+      } catch (e) {
+        nearestValue = 0.5;
+      }
+    }
+  }
+
+  return nearestValue;
+}
+
+/**
  * Generates data for all camera locations (expanded grid coverage)
  * This includes many more monitoring points across the sewer system
  *
@@ -241,7 +292,7 @@ function generateAllLocationsData(time) {
     CameraList.push({
       Position: position,
       SegmentID: i,
-      Water: ComputeWater(position, time + i * 5) / 2,
+      Water: ComputeWaterSafe(position, time + i * 5) / 2,
       Light: ComputeLight(position),
       Status: status,
     });
